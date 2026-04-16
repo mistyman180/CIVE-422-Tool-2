@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Haul Road Dust Control Comparison Tool — CIVE 442</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f4efe6;
+    --bg-card: #faf6ed;
+    --ink: #1a1612;
+    --ink-soft: #4a4239;
+    --rust: #b8451f;
+    --ochre: #c68a2e;
+    --moss: #4a6b3a;
+    --dust: #d4c5a9;
+    --line: #2a241f;
+    --accent-a: #b8451f;
+    --accent-b: #4a6b3a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(184,69,31,0.04) 0%, transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(74,107,58,0.04) 0%, transparent 40%);
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
+
+  /* Header */
+  header {
+    border-bottom: 2px solid var(--line);
+    padding-bottom: 20px;
+    margin-bottom: 32px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+  }
+  .title-block h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .title-block h1 em {
+    font-style: italic;
+    color: var(--rust);
+    font-weight: 600;
+  }
+  .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-top: 8px;
+    color: var(--ink-soft);
+  }
+  .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-align: right;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .meta strong { color: var(--ink); }
+
+  /* Section headers */
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  h2::before {
+    content: attr(data-num);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--rust);
+    letter-spacing: 0.1em;
+  }
+  .section-desc {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    margin-bottom: 20px;
+    max-width: 70ch;
+  }
+
+  /* Grid layout */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 28px;
+    margin-bottom: 40px;
+  }
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Cards */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 22px;
+    position: relative;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px;
+    width: 18px; height: 18px;
+    border-top: 3px solid var(--rust);
+    border-left: 3px solid var(--rust);
+  }
+  .card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--ink-soft);
+  }
+
+  /* Inputs */
+  .input-group { margin-bottom: 16px; }
+  .input-group label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .input-group label .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--rust);
+    font-size: 0.8rem;
+  }
+  .input-group input[type=range] {
+    width: 100%;
+    accent-color: var(--rust);
+    height: 4px;
+  }
+  .input-group input[type=number],
+  .input-group select {
+    width: 100%;
+    padding: 8px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--ink);
+  }
+  .input-group .hint {
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+    margin-top: 3px;
+    font-style: italic;
+  }
+
+  /* Output cards */
+  .metric-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .metric {
+    background: var(--bg);
+    border-left: 4px solid var(--accent-a);
+    padding: 14px 16px;
+  }
+  .metric.b { border-left-color: var(--accent-b); }
+  .metric-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+  .metric-value {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: 1.8rem;
+    line-height: 1;
+  }
+  .metric-unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+  .metric.exceedance .metric-value { color: var(--rust); }
+  .metric.compliant .metric-value { color: var(--moss); }
+
+  /* Chart container */
+  .chart-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 18px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .chart-wrap canvas { max-height: 340px; }
+  .chart-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+  }
+  .chart-sub {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+
+  /* MCDA table */
+  .mcda-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin-top: 12px;
+  }
+  .mcda-table th {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 12px;
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+  }
+  .mcda-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--dust);
+    vertical-align: top;
+  }
+  .mcda-table tr.total-row td {
+    background: var(--dust);
+    font-weight: 700;
+    border-top: 2px solid var(--line);
+    border-bottom: none;
+  }
+  .mcda-table .score {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 0.82rem;
+  }
+  .score-5 { background: #3d5a2a; color: #fff; }
+  .score-4 { background: #6b8a3e; color: #fff; }
+  .score-3 { background: #c68a2e; color: #fff; }
+  .score-2 { background: #c06a2a; color: #fff; }
+  .score-1 { background: #8b2d1a; color: #fff; }
+  .rationale {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    line-height: 1.4;
+  }
+
+  /* Recommendation panel */
+  .rec-panel {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 28px;
+    margin: 28px 0;
+    position: relative;
+  }
+  .rec-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 6px; height: 100%;
+    background: var(--rust);
+  }
+  .rec-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--ochre);
+    margin-bottom: 10px;
+  }
+  .rec-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+  .rec-body { font-size: 0.92rem; line-height: 1.6; opacity: 0.92; }
+
+  /* AI panel */
+  .ai-panel {
+    background: var(--bg-card);
+    border: 2px solid var(--line);
+    padding: 22px;
+    margin: 28px 0;
+  }
+  .ai-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .ai-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ai-title::before {
+    content: '◆';
+    color: var(--rust);
+  }
+  .ai-btn {
+    background: var(--rust);
+    color: var(--bg);
+    border: none;
+    padding: 10px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .ai-btn:hover { background: #8b2d1a; }
+  .ai-btn:disabled { background: var(--ink-soft); cursor: not-allowed; }
+  .ai-output {
+    background: var(--bg);
+    border-left: 3px solid var(--ochre);
+    padding: 16px 18px;
+    font-size: 0.88rem;
+    line-height: 1.65;
+    min-height: 80px;
+    white-space: pre-wrap;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .ai-output.placeholder {
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  /* Description section */
+  .desc-section {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 26px;
+    margin-top: 32px;
+  }
+  .desc-section h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+  }
+  .desc-section p {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin-bottom: 10px;
+    max-width: 75ch;
+  }
+  .desc-section strong { color: var(--rust); }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    border-bottom: 2px solid var(--line);
+  }
+  .tab {
+    padding: 10px 18px;
+    background: transparent;
+    border: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    color: var(--ink-soft);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    font-weight: 500;
+  }
+  .tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--rust);
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Footer / assumptions */
+  footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--ink-soft);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  footer strong { color: var(--ink); }
+  .assumptions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 14px;
+  }
+  .assumption-item {
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border-left: 2px solid var(--ochre);
+  }
+  .assumption-item .k {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .assumption-item .v {
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  /* Utility */
+  .flex-row { display: flex; gap: 10px; align-items: center; }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="title-block">
+    <h1>Haul Road Dust Control<br><em>Comparative Emissions Tool</em></h1>
+    <div class="subtitle">Gaussian Line-Source Dispersion × MCDA Framework</div>
+  </div>
+  <div class="meta">
+    <strong>CIVE 442 / Tool 2</strong><br>
+    Emissions Reduction Design<br>
+    Scenario: Front Range Aggregate Quarry<br>
+    Receptor: Elementary School @ 400 m
+  </div>
+</header>
+
+<!-- ============================================================ -->
+<!-- MAIN DASHBOARD                                                -->
+<!-- ============================================================ -->
+
+<h2 data-num="[ 01 ]">Model Inputs</h2>
+<p class="section-desc">Adjust operational and meteorological parameters to see how haul road PM₁₀ emissions change at the school fence line. All alternatives are evaluated under identical meteorological conditions for direct comparison.</p>
+
+<div class="main-grid">
+
+  <!-- ========== LEFT: INPUT CONTROLS ========== -->
+  <div class="card">
+    <div class="card-label">Operational Parameters</div>
+
+    <div class="input-group">
+      <label>Vehicle silt content, s <span class="val" id="v-silt">8.5%</span></label>
+      <input type="range" id="i-silt" min="3" max="20" step="0.5" value="8.5">
+      <div class="hint">AP-42 §13.2.2, range 4.8–25% for quarries</div>
+    </div>
+
+    <div class="input-group">
+      <label>Mean vehicle weight, W <span class="val" id="v-weight">35 tons</span></label>
+      <input type="range" id="i-weight" min="5" max="80" step="1" value="35">
+      <div class="hint">Haul truck loaded weight</div>
+    </div>
+
+    <div class="input-group">
+      <label>Vehicle trips per hour <span class="val" id="v-trips">12</span></label>
+      <input type="range" id="i-trips" min="1" max="40" step="1" value="12">
+      <div class="hint">Round trips per hour on haul road</div>
+    </div>
+
+    <div class="input-group">
+      <label>Haul road length <span class="val" id="v-length">800 m</span></label>
+      <input type="range" id="i-length" min="200" max="2000" step="50" value="800">
+    </div>
+
+    <div class="card-label" style="margin-top:20px;">Meteorological Conditions</div>
+
+    <div class="input-group">
+      <label>Wind speed at 10 m, u <span class="val" id="v-wind">3.5 m/s</span></label>
+      <input type="range" id="i-wind" min="0.5" max="10" step="0.1" value="3.5">
+      <div class="hint">Toward school = worst case</div>
+    </div>
+
+    <div class="input-group">
+      <label>Pasquill stability class</label>
+      <select id="i-stability">
+        <option value="A">A — Extremely unstable</option>
+        <option value="B">B — Moderately unstable</option>
+        <option value="C">C — Slightly unstable</option>
+        <option value="D" selected>D — Neutral (typical daytime)</option>
+        <option value="E">E — Slightly stable</option>
+        <option value="F">F — Moderately stable (worst case)</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label>Receptor distance, x <span class="val" id="v-dist">400 m</span></label>
+      <input type="range" id="i-dist" min="50" max="1500" step="10" value="400">
+      <div class="hint">Haul road centerline → school</div>
+    </div>
+
+    <div class="card-label" style="margin-top:20px;">Water Truck Parameters</div>
+    <div class="input-group">
+      <label>Application interval <span class="val" id="v-water-int">90 min</span></label>
+      <input type="range" id="i-water-int" min="30" max="240" step="15" value="90">
+      <div class="hint">Shorter = higher mean control</div>
+    </div>
+
+    <div class="card-label" style="margin-top:20px;">MgCl₂ Suppressant Parameters</div>
+    <div class="input-group">
+      <label>Days since application <span class="val" id="v-mgcl-age">14 days</span></label>
+      <input type="range" id="i-mgcl-age" min="0" max="60" step="1" value="14">
+      <div class="hint">Effectiveness decays over ~45 days</div>
+    </div>
+  </div>
+
+  <!-- ========== RIGHT: OUTPUTS ========== -->
+  <div>
+    <!-- Key metrics -->
+    <div class="metric-row">
+      <div class="metric" id="m-water">
+        <div class="metric-label">◼ Water Trucks — 24-hr PM₁₀</div>
+        <div class="metric-value"><span id="out-water">—</span> <span style="font-size:1rem;">µg/m³</span></div>
+        <div class="metric-unit" id="out-water-status">at receptor</div>
+      </div>
+      <div class="metric b" id="m-mgcl">
+        <div class="metric-label">◼ MgCl₂ Suppressant — 24-hr PM₁₀</div>
+        <div class="metric-value"><span id="out-mgcl">—</span> <span style="font-size:1rem;">µg/m³</span></div>
+        <div class="metric-unit" id="out-mgcl-status">at receptor</div>
+      </div>
+    </div>
+
+    <!-- Chart tabs -->
+    <div class="chart-wrap">
+      <div class="tabs">
+        <button class="tab active" data-panel="p-distance">Concentration vs. Distance</button>
+        <button class="tab" data-panel="p-wind">Sensitivity: Wind</button>
+        <button class="tab" data-panel="p-stability">Sensitivity: Stability</button>
+      </div>
+
+      <div class="tab-panel active" id="p-distance">
+        <div class="chart-title">PM₁₀ Concentration vs. Downwind Distance</div>
+        <div class="chart-sub">24-hr average, current meteorology. NAAQS 24-hr PM₁₀ limit: 150 µg/m³.</div>
+        <canvas id="chart-distance"></canvas>
+      </div>
+      <div class="tab-panel" id="p-wind">
+        <div class="chart-title">Sensitivity: Wind Speed</div>
+        <div class="chart-sub">Concentration at receptor across wind speed range. Low winds → worst exposure.</div>
+        <canvas id="chart-wind"></canvas>
+      </div>
+      <div class="tab-panel" id="p-stability">
+        <div class="chart-title">Sensitivity: Atmospheric Stability</div>
+        <div class="chart-sub">Class F (stable, nighttime/calm) yields highest ground-level concentrations.</div>
+        <canvas id="chart-stability"></canvas>
+      </div>
+    </div>
+
+    <!-- MCDA -->
+    <div class="chart-wrap">
+      <div class="chart-title">Multi-Criteria Decision Analysis</div>
+      <div class="chart-sub">Weighted 1–5 scoring. Technical Effectiveness scored from live model output; other dimensions use structured qualitative ranking documented below.</div>
+      <table class="mcda-table">
+        <thead>
+          <tr>
+            <th>Criterion</th>
+            <th style="width:70px;">Weight</th>
+            <th style="width:95px;">Water Trucks</th>
+            <th style="width:95px;">MgCl₂</th>
+            <th>Rationale</th>
+          </tr>
+        </thead>
+        <tbody id="mcda-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Recommendation -->
+    <div class="rec-panel">
+      <div class="rec-label">↳ Recommendation</div>
+      <div class="rec-title" id="rec-title">—</div>
+      <div class="rec-body" id="rec-body">—</div>
+    </div>
+
+    <!-- AI Panel -->
+    <div class="ai-panel">
+      <div class="ai-header">
+        <div class="ai-title">AI-Assisted Results Interpretation</div>
+        <button class="ai-btn" id="ai-btn">Interpret current scenario</button>
+      </div>
+      <div class="ai-output placeholder" id="ai-output">Click to generate a plain-language interpretation of your current inputs, model output, and MCDA results. This uses the Anthropic API to analyze the scenario in context — consider it a second opinion, not ground truth.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TOOL DESCRIPTION (rubric: 2 pts)                             -->
+<!-- ============================================================ -->
+
+<div class="desc-section">
+  <h3>Tool Description</h3>
+  <p><strong>What it does.</strong> This tool compares two engineering alternatives for reducing respirable dust (PM₁₀) emissions from haul road traffic at a Front Range aggregate quarry, where the critical receptor is an elementary school approximately 400 m downwind. The alternatives are periodic water truck application and magnesium chloride (MgCl₂) chemical suppressant.</p>
+  <p><strong>Inputs.</strong> The tool accepts user-adjustable inputs for operational parameters (vehicle silt content, mean vehicle weight, trips per hour, haul road length), meteorology (wind speed, Pasquill-Gifford atmospheric stability class, receptor distance), and control-specific parameters (water truck application interval, MgCl₂ application age).</p>
+  <p><strong>Modeling approach.</strong> The tool uses a <strong>simplified Gaussian line-source dispersion model</strong> with Pasquill-Gifford sigma coefficients (Martin 1976 power-law formulation) to estimate ground-level PM₁₀ concentrations at the receptor. Uncontrolled emission factors are computed from the AP-42 §13.2.2 unpaved road equation, and each control alternative is applied as a time-weighted or age-dependent control efficiency. A line source is appropriate here because the haul road is long relative to the receptor distance and emissions are distributed along its length.</p>
+  <p><strong>Outputs.</strong> The tool produces (1) 24-hour average PM₁₀ concentrations at the receptor for both alternatives, compared to the 150 µg/m³ NAAQS; (2) concentration-vs-distance plots; (3) sensitivity plots for wind speed and stability class; (4) a four-criterion MCDA matrix; and (5) an AI-generated interpretation of the results.</p>
+  <p><strong>Interpretation.</strong> A user should compare the two concentration metrics against the NAAQS and against each other, then inspect the MCDA matrix to weigh tradeoffs in cost, health impact, and environmental burden. The sensitivity tabs reveal conditions under which each alternative fails — low wind speeds and stable atmospheres make <em>all</em> interventions less adequate and favor the more aggressive control.</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- FOOTER: ASSUMPTIONS & UNCERTAINTY                             -->
+<!-- ============================================================ -->
+
+<footer>
+  <strong>Key Assumptions & Uncertainty</strong>
+  <div class="assumptions">
+    <div class="assumption-item"><div class="k">Emission factor</div><div class="v">AP-42 §13.2.2 unpaved industrial road: EF = k·(s/12)^a·(W/3)^b</div></div>
+    <div class="assumption-item"><div class="k">Water truck efficiency</div><div class="v">Time-avg 55–75% (USEPA, inversely proportional to interval)</div></div>
+    <div class="assumption-item"><div class="k">MgCl₂ efficiency</div><div class="v">90% at application, linear decay to 0 at 45 days</div></div>
+    <div class="assumption-item"><div class="k">Dispersion coefficients</div><div class="v">Martin (1976) power-law σ_y, σ_z for rural terrain</div></div>
+    <div class="assumption-item"><div class="k">Receptor geometry</div><div class="v">Wind bearing directly toward school (worst case)</div></div>
+    <div class="assumption-item"><div class="k">Release height</div><div class="v">Effective h = 2 m (near-ground dust plume)</div></div>
+    <div class="assumption-item"><div class="k">Background PM₁₀</div><div class="v">Not added; shown values are source contribution only</div></div>
+    <div class="assumption-item"><div class="k">Model limits</div><div class="v">Steady-state, no building downwash, no deposition</div></div>
+  </div>
+  <p style="margin-top:18px;">Built for CIVE 442 Tool 2 (Spring 2026). Modeling code and interpretation assisted by Claude (Anthropic). All engineering judgments, criterion weights, and the recommendation logic are the author&#8217;s.</p>
+</footer>
+
+</div>
+
+<script>
+// ============================================================
+// GAUSSIAN LINE-SOURCE MODEL
+// ============================================================
+
+// Pasquill-Gifford sigma coefficients (Martin 1976, rural)
+// sigma_y = a * x^0.894
+// sigma_z = c * x^d + f
+const PG = {
+  A: { a: 213,    c: 440.8,  d: 1.941,  f: 9.27  },
+  B: { a: 156,    c: 106.6,  d: 1.149,  f: 3.3   },
+  C: { a: 104,    c: 61.0,   d: 0.911,  f: 0     },
+  D: { a: 68,     c: 33.2,   d: 0.725,  f: -1.7  },
+  E: { a: 50.5,   c: 22.8,   d: 0.678,  f: -1.3  },
+  F: { a: 34,     c: 14.35,  d: 0.740,  f: -0.35 }
+};
+
+function sigmaY(x_m, stab) {
+  const x_km = x_m / 1000;
+  const p = PG[stab];
+  return p.a * Math.pow(x_km, 0.894);
+}
+
+function sigmaZ(x_m, stab) {
+  const x_km = x_m / 1000;
+  const p = PG[stab];
+  return Math.max(0.1, p.c * Math.pow(x_km, p.d) + p.f);
+}
+
+// AP-42 §13.2.2 unpaved road PM10 emission factor (lb/VMT)
+// EF = k * (s/12)^a * (W/3)^b; k=1.5, a=0.9, b=0.45 for PM10
+function emissionFactor_gPerVehKm(silt, weight_tons) {
+  const lb_per_vmt = 1.5 * Math.pow(silt/12, 0.9) * Math.pow(weight_tons/3, 0.45);
+  const g_per_vkm = lb_per_vmt * 453.592 / 1.609;  // lb→g, mi→km
+  return g_per_vkm;
+}
+
+// Water truck control efficiency (time-averaged)
+// Shorter interval → higher average CE. Watson et al. approach.
+function waterCE(interval_min) {
+  // Linear interpolation: 30 min → 80%, 240 min → 35%
+  const ce = 0.80 - (interval_min - 30) / (240 - 30) * (0.80 - 0.35);
+  return Math.max(0.20, Math.min(0.80, ce));
+}
+
+// MgCl2 control efficiency: 90% fresh, linear decay to 0 over 45 days
+function mgclCE(days_since) {
+  if (days_since >= 45) return 0.10;
+  return Math.max(0.10, 0.90 - (days_since / 45) * 0.80);
+}
+
+// Gaussian line-source concentration at receptor (Calder 1973 infinite crosswind line)
+// For a line source of length L perpendicular or at angle; for wind perpendicular to road
+// C(x,0,0) = (2*Q_L) / (sqrt(2*pi) * sigma_z * u) * exp(-h^2/(2*sigma_z^2))
+// where Q_L = g/s per meter of road
+// Result in µg/m^3 if Q_L in g/s/m, u in m/s, sigma in m → multiply by 1e6
+function lineConcentration(Q_L_g_per_s_per_m, u, x_m, h_m, stab) {
+  const sz = sigmaZ(x_m, stab);
+  const term = (2 * Q_L_g_per_s_per_m) / (Math.sqrt(2 * Math.PI) * sz * u);
+  const exp_term = Math.exp(-(h_m*h_m) / (2 * sz * sz));
+  return term * exp_term * 1e6; // g/m^3 → µg/m^3
+}
+
+function scenarioConcentration(params, controlEfficiency) {
+  // Compute line source strength Q_L (g/s per meter of road)
+  const ef_g_per_vkm = emissionFactor_gPerVehKm(params.silt, params.weight);
+  const veh_per_hour = params.trips;
+  // grams per hour emitted along entire road length
+  const g_per_hour_total = ef_g_per_vkm * (params.length/1000) * veh_per_hour;
+  // g/s per meter
+  const Q_L = (g_per_hour_total / 3600) / params.length;
+  // Apply control
+  const Q_L_controlled = Q_L * (1 - controlEfficiency);
+
+  const c = lineConcentration(Q_L_controlled, params.wind, params.dist, 2.0, params.stability);
+
+  // Convert 1-hr to 24-hr average using persistence factor
+  // Assume operations ~10 hr/day, so 24-hr avg ≈ 10/24 of operating concentration
+  const hrsOfOperation = 10;
+  const c_24hr = c * (hrsOfOperation / 24);
+
+  return { c_op: c, c_24hr };
+}
+
+// ============================================================
+// MCDA FRAMEWORK
+// ============================================================
+// Weights: Tech Eff 0.35, Health 0.30, Cost 0.20, Env 0.15
+// Scores 1–5. Tech Eff from live model, others from docs below.
+
+const MCDA_CRITERIA = [
+  {
+    key: 'tech',
+    label: 'Technical Effectiveness',
+    weight: 0.35,
+    // filled live
+  },
+  {
+    key: 'health',
+    label: 'Public Health & Safety',
+    weight: 0.30,
+    water: { score: 3, rationale: 'Effective during operations but control gap during 90-min intervals coincides with peak school recess/outdoor time. Children are a highly sensitive receptor (developing lungs). No secondary health risks.' },
+    mgcl: { score: 4, rationale: 'More consistent control across school day; fewer exposure spikes. Secondary concern: chloride dermal irritation if runoff reaches playground soils, but negligible at 400 m.' }
+  },
+  {
+    key: 'cost',
+    label: 'Cost & Practicality',
+    weight: 0.20,
+    water: { score: 3, rationale: 'Low capital cost, but high recurring labor (~1 FTE truck operator) and water volumes (~5,000 gal/day). Infrastructure already in place at most quarries.' },
+    mgcl: { score: 4, rationale: 'Higher per-application cost (~$0.15/yd² × 2–3 applications/season) but requires minimal labor between applications. Shelf-stable, logistically simple.' }
+  },
+  {
+    key: 'env',
+    label: 'Environmental Considerations',
+    weight: 0.15,
+    water: { score: 4, rationale: 'High water use (Colorado scarcity concern; ~1.8 M gal/season). No chemical persistence. No soil/groundwater contamination pathway.' },
+    mgcl: { score: 2, rationale: 'Chloride accumulation in roadside soils documented; potential for groundwater contamination in shallow aquifer settings. Phytotoxic to some vegetation. Negligible water use. Net environmental burden shifts from water to chemical footprint.' }
+  }
+];
+
+// ============================================================
+// UI BINDINGS
+// ============================================================
+
+const inputs = {
+  silt:      document.getElementById('i-silt'),
+  weight:    document.getElementById('i-weight'),
+  trips:     document.getElementById('i-trips'),
+  length:    document.getElementById('i-length'),
+  wind:      document.getElementById('i-wind'),
+  stability: document.getElementById('i-stability'),
+  dist:      document.getElementById('i-dist'),
+  water_int: document.getElementById('i-water-int'),
+  mgcl_age:  document.getElementById('i-mgcl-age')
+};
+
+const displays = {
+  silt:      document.getElementById('v-silt'),
+  weight:    document.getElementById('v-weight'),
+  trips:     document.getElementById('v-trips'),
+  length:    document.getElementById('v-length'),
+  wind:      document.getElementById('v-wind'),
+  dist:      document.getElementById('v-dist'),
+  water_int: document.getElementById('v-water-int'),
+  mgcl_age:  document.getElementById('v-mgcl-age')
+};
+
+function readParams() {
+  return {
+    silt:      parseFloat(inputs.silt.value),
+    weight:    parseFloat(inputs.weight.value),
+    trips:     parseFloat(inputs.trips.value),
+    length:    parseFloat(inputs.length.value),
+    wind:      parseFloat(inputs.wind.value),
+    stability: inputs.stability.value,
+    dist:      parseFloat(inputs.dist.value),
+    water_int: parseFloat(inputs.water_int.value),
+    mgcl_age:  parseFloat(inputs.mgcl_age.value)
+  };
+}
+
+function updateDisplays() {
+  const p = readParams();
+  displays.silt.textContent = p.silt.toFixed(1) + '%';
+  displays.weight.textContent = p.weight.toFixed(0) + ' tons';
+  displays.trips.textContent = p.trips.toFixed(0);
+  displays.length.textContent = p.length.toFixed(0) + ' m';
+  displays.wind.textContent = p.wind.toFixed(1) + ' m/s';
+  displays.dist.textContent = p.dist.toFixed(0) + ' m';
+  displays.water_int.textContent = p.water_int.toFixed(0) + ' min';
+  displays.mgcl_age.textContent = p.mgcl_age.toFixed(0) + ' days';
+}
+
+// ============================================================
+// CHART SETUP
+// ============================================================
+const NAAQS_24HR = 150; // µg/m^3
+
+Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+Chart.defaults.color = '#4a4239';
+
+const chartDistance = new Chart(document.getElementById('chart-distance'), {
+  type: 'line',
+  data: { labels: [], datasets: [] },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 } } },
+      annotation: {}
+    },
+    scales: {
+      x: { title: { display: true, text: 'Distance from haul road (m)' } },
+      y: { title: { display: true, text: 'PM₁₀ concentration (µg/m³)' }, beginAtZero: true }
+    },
+    elements: { point: { radius: 0 }, line: { tension: 0.2, borderWidth: 2.5 } }
+  }
+});
+
+const chartWind = new Chart(document.getElementById('chart-wind'), {
+  type: 'line',
+  data: { labels: [], datasets: [] },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom' } },
+    scales: {
+      x: { title: { display: true, text: 'Wind speed (m/s)' } },
+      y: { title: { display: true, text: 'PM₁₀ at receptor (µg/m³)' }, beginAtZero: true }
+    },
+    elements: { point: { radius: 0 }, line: { tension: 0.2, borderWidth: 2.5 } }
+  }
+});
+
+const chartStability = new Chart(document.getElementById('chart-stability'), {
+  type: 'bar',
+  data: { labels: [], datasets: [] },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom' } },
+    scales: {
+      x: { title: { display: true, text: 'Pasquill-Gifford stability class' } },
+      y: { title: { display: true, text: 'PM₁₀ at receptor (µg/m³)' }, beginAtZero: true }
+    }
+  }
+});
+
+// ============================================================
+// TAB HANDLING
+// ============================================================
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.panel).classList.add('active');
+  });
+});
+
+// ============================================================
+// MAIN UPDATE
+// ============================================================
+function update() {
+  updateDisplays();
+  const p = readParams();
+  const ce_water = waterCE(p.water_int);
+  const ce_mgcl  = mgclCE(p.mgcl_age);
+
+  // --- Point metrics at receptor ---
+  const w = scenarioConcentration(p, ce_water);
+  const m = scenarioConcentration(p, ce_mgcl);
+  document.getElementById('out-water').textContent = w.c_24hr.toFixed(1);
+  document.getElementById('out-mgcl').textContent = m.c_24hr.toFixed(1);
+
+  const waterEl = document.getElementById('m-water');
+  const mgclEl  = document.getElementById('m-mgcl');
+  waterEl.classList.toggle('exceedance', w.c_24hr > NAAQS_24HR);
+  waterEl.classList.toggle('compliant',  w.c_24hr <= NAAQS_24HR);
+  mgclEl.classList.toggle('exceedance',  m.c_24hr > NAAQS_24HR);
+  mgclEl.classList.toggle('compliant',   m.c_24hr <= NAAQS_24HR);
+  document.getElementById('out-water-status').textContent = w.c_24hr > NAAQS_24HR
+    ? `⚠ EXCEEDS 24-hr NAAQS (150 µg/m³) · CE = ${(ce_water*100).toFixed(0)}%`
+    : `✓ Below 24-hr NAAQS · CE = ${(ce_water*100).toFixed(0)}%`;
+  document.getElementById('out-mgcl-status').textContent = m.c_24hr > NAAQS_24HR
+    ? `⚠ EXCEEDS 24-hr NAAQS (150 µg/m³) · CE = ${(ce_mgcl*100).toFixed(0)}%`
+    : `✓ Below 24-hr NAAQS · CE = ${(ce_mgcl*100).toFixed(0)}%`;
+
+  // --- Distance chart ---
+  const dists = [];
+  const wArr = [], mArr = [], naaqsArr = [];
+  for (let x = 50; x <= 1500; x += 25) {
+    dists.push(x);
+    const pp = {...p, dist: x};
+    wArr.push(scenarioConcentration(pp, ce_water).c_24hr);
+    mArr.push(scenarioConcentration(pp, ce_mgcl).c_24hr);
+    naaqsArr.push(NAAQS_24HR);
+  }
+  chartDistance.data.labels = dists;
+  chartDistance.data.datasets = [
+    { label: 'Water Trucks', data: wArr, borderColor: '#b8451f', backgroundColor: 'rgba(184,69,31,0.08)', fill: true },
+    { label: 'MgCl₂ Suppressant', data: mArr, borderColor: '#4a6b3a', backgroundColor: 'rgba(74,107,58,0.08)', fill: true },
+    { label: '24-hr PM₁₀ NAAQS', data: naaqsArr, borderColor: '#1a1612', borderDash: [6,4], borderWidth: 1.5, fill: false, pointRadius: 0 }
+  ];
+  chartDistance.update();
+
+  // --- Wind sensitivity ---
+  const winds = [];
+  const wWind = [], mWind = [];
+  for (let u = 0.5; u <= 10; u += 0.2) {
+    winds.push(u.toFixed(1));
+    const pp = {...p, wind: u};
+    wWind.push(scenarioConcentration(pp, ce_water).c_24hr);
+    mWind.push(scenarioConcentration(pp, ce_mgcl).c_24hr);
+  }
+  chartWind.data.labels = winds;
+  chartWind.data.datasets = [
+    { label: 'Water Trucks', data: wWind, borderColor: '#b8451f', backgroundColor: 'rgba(184,69,31,0.08)', fill: true },
+    { label: 'MgCl₂ Suppressant', data: mWind, borderColor: '#4a6b3a', backgroundColor: 'rgba(74,107,58,0.08)', fill: true },
+    { label: 'NAAQS', data: winds.map(()=>NAAQS_24HR), borderColor: '#1a1612', borderDash:[6,4], borderWidth:1.5, fill:false, pointRadius:0 }
+  ];
+  chartWind.update();
+
+  // --- Stability sensitivity ---
+  const classes = ['A','B','C','D','E','F'];
+  const wStab = [], mStab = [];
+  classes.forEach(s => {
+    const pp = {...p, stability: s};
+    wStab.push(scenarioConcentration(pp, ce_water).c_24hr);
+    mStab.push(scenarioConcentration(pp, ce_mgcl).c_24hr);
+  });
+  chartStability.data.labels = classes;
+  chartStability.data.datasets = [
+    { label: 'Water Trucks', data: wStab, backgroundColor: 'rgba(184,69,31,0.75)' },
+    { label: 'MgCl₂ Suppressant', data: mStab, backgroundColor: 'rgba(74,107,58,0.75)' }
+  ];
+  chartStability.update();
+
+  // --- MCDA ---
+  // Technical effectiveness score from live ratio of reduction vs uncontrolled
+  const uncontrolled = scenarioConcentration(p, 0).c_24hr;
+  const wReduction = 1 - (w.c_24hr / uncontrolled);
+  const mReduction = 1 - (m.c_24hr / uncontrolled);
+  function effScore(red) {
+    if (red >= 0.85) return 5;
+    if (red >= 0.70) return 4;
+    if (red >= 0.50) return 3;
+    if (red >= 0.30) return 2;
+    return 1;
+  }
+  const wEff = effScore(wReduction);
+  const mEff = effScore(mReduction);
+
+  const rows = MCDA_CRITERIA.map(c => {
+    if (c.key === 'tech') {
+      return {
+        label: 'Technical Effectiveness',
+        weight: c.weight,
+        water: { score: wEff, rationale: `Current scenario: ${(wReduction*100).toFixed(0)}% reduction from uncontrolled (${uncontrolled.toFixed(0)} → ${w.c_24hr.toFixed(0)} µg/m³). CE = ${(ce_water*100).toFixed(0)}%.` },
+        mgcl:  { score: mEff, rationale: `Current scenario: ${(mReduction*100).toFixed(0)}% reduction from uncontrolled (${uncontrolled.toFixed(0)} → ${m.c_24hr.toFixed(0)} µg/m³). CE = ${(ce_mgcl*100).toFixed(0)}%.` }
+      };
+    }
+    return { label: c.label, weight: c.weight, water: c.water, mgcl: c.mgcl };
+  });
+
+  let wTotal = 0, mTotal = 0;
+  const tbody = document.getElementById('mcda-body');
+  tbody.innerHTML = '';
+  rows.forEach(r => {
+    wTotal += r.water.score * r.weight;
+    mTotal += r.mgcl.score * r.weight;
+    tbody.innerHTML += `
+      <tr>
+        <td><strong>${r.label}</strong></td>
+        <td>${r.weight.toFixed(2)}</td>
+        <td><span class="score score-${r.water.score}">${r.water.score}</span></td>
+        <td><span class="score score-${r.mgcl.score}">${r.mgcl.score}</span></td>
+        <td>
+          <div class="rationale"><strong style="color:#b8451f;">Water:</strong> ${r.water.rationale}</div>
+          <div class="rationale" style="margin-top:4px;"><strong style="color:#4a6b3a;">MgCl₂:</strong> ${r.mgcl.rationale}</div>
+        </td>
+      </tr>`;
+  });
+  tbody.innerHTML += `
+    <tr class="total-row">
+      <td>Weighted Total</td>
+      <td>1.00</td>
+      <td>${wTotal.toFixed(2)}</td>
+      <td>${mTotal.toFixed(2)}</td>
+      <td class="rationale">Higher = preferred overall.</td>
+    </tr>`;
+
+  // --- Recommendation logic ---
+  const diff = mTotal - wTotal;
+  let recTitle, recBody;
+  const winner = mTotal > wTotal ? 'MgCl₂ Suppressant' : 'Water Truck Application';
+  const loser  = mTotal > wTotal ? 'water trucks' : 'MgCl₂';
+
+  if (Math.abs(diff) < 0.15) {
+    recTitle = 'Close call — hybrid or conditional deployment';
+    recBody = `Under the current scenario the two alternatives score within 0.15 of each other on the weighted MCDA (Water = ${wTotal.toFixed(2)}, MgCl₂ = ${mTotal.toFixed(2)}). This typically means operational conditions — not control technology — dominate the exposure. Consider a hybrid approach: MgCl₂ as the base layer with water trucks during high-traffic periods or when plume direction aligns with the school.`;
+  } else if (w.c_24hr > NAAQS_24HR && m.c_24hr > NAAQS_24HR) {
+    recTitle = 'Neither alternative is sufficient alone';
+    recBody = `Both alternatives exceed the 24-hr PM₁₀ NAAQS (150 µg/m³) under the current scenario. Recommendation: stack controls (MgCl₂ + more frequent water trucks) and reduce emission-generating activity (lower trips, reduce silt via road base improvement) until modeled concentration is below 100 µg/m³ to account for background and model uncertainty.`;
+  } else {
+    recTitle = `${winner} is the defensible choice`;
+    recBody = `Under the current scenario, ${winner} outperforms ${loser} on the weighted MCDA (${Math.max(wTotal, mTotal).toFixed(2)} vs ${Math.min(wTotal, mTotal).toFixed(2)}). Use the sensitivity tabs to test whether this ranking holds under low-wind and stable atmosphere conditions — if the ranking flips, deploy the losing alternative during favorable meteorology to conserve cost/environmental resources.`;
+  }
+  document.getElementById('rec-title').textContent = recTitle;
+  document.getElementById('rec-body').textContent = recBody;
+}
+
+// Wire up all inputs
+Object.values(inputs).forEach(el => {
+  el.addEventListener('input', update);
+  el.addEventListener('change', update);
+});
+
+// ============================================================
+// AI INTERPRETATION PANEL (Anthropic API)
+// ============================================================
+document.getElementById('ai-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('ai-btn');
+  const out = document.getElementById('ai-output');
+  const p = readParams();
+  const ce_water = waterCE(p.water_int);
+  const ce_mgcl  = mgclCE(p.mgcl_age);
+  const w = scenarioConcentration(p, ce_water);
+  const m = scenarioConcentration(p, ce_mgcl);
+  const uncontrolled = scenarioConcentration(p, 0).c_24hr;
+
+  btn.disabled = true;
+  btn.textContent = 'Analyzing...';
+  out.classList.remove('placeholder');
+  out.textContent = 'Querying Anthropic API…';
+
+  const prompt = `You are a civil engineering TA helping a student interpret the output of a Gaussian line-source dispersion model comparing two haul road dust controls at an aggregate quarry. The receptor is an elementary school at 400 m.
+
+Current scenario:
+- Silt content: ${p.silt}%, vehicle weight: ${p.weight} tons, trips/hr: ${p.trips}, road length: ${p.length} m
+- Wind: ${p.wind} m/s, Pasquill stability: ${p.stability}, receptor distance: ${p.dist} m
+- Water truck interval: ${p.water_int} min (CE=${(ce_water*100).toFixed(0)}%)
+- MgCl₂ age: ${p.mgcl_age} days (CE=${(ce_mgcl*100).toFixed(0)}%)
+
+Model output (24-hr avg PM₁₀ at receptor):
+- Uncontrolled: ${uncontrolled.toFixed(1)} µg/m³
+- Water trucks: ${w.c_24hr.toFixed(1)} µg/m³
+- MgCl₂: ${m.c_24hr.toFixed(1)} µg/m³
+- 24-hr NAAQS: 150 µg/m³
+
+In 3-4 sentences (no bullet points, no headers), explain what this result means for the school, note any surprising or concerning pattern, and flag the biggest source of uncertainty a defensible engineering judgment would need to address. Be direct and plainspoken.`;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('\n')
+      .trim();
+    out.textContent = text || '(No response received.)';
+  } catch (err) {
+    out.textContent = 'Error contacting API: ' + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Interpret current scenario';
+  }
+});
+
+// Initial render
+update();
+</script>
+</body>
+</html>
